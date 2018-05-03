@@ -2,6 +2,12 @@
 <html>
 	<head>
 		<style type="text/css">
+			#health {
+				font-size: 25px;
+				font-family:  "Lucida Console", Monaco, monospace;
+				line-height: 2;
+				letter-spacing: -0.1px;
+			}
 			#map {
 				font-size: 50px;
 				font-family:  "Lucida Console", Monaco, monospace;
@@ -9,13 +15,22 @@
 				line-height: 1;
 				letter-spacing: -0.1px;
 			}
+			#eventLog {
+				font-size: 25px;
+				line-height: 1;
+				white-space: pre-wrap;
+			}
 		</style>
 		<script
   src="https://code.jquery.com/jquery-3.3.1.js"
   integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
   crossorigin="anonymous"></script>
 		<script>
-			/*function initMap(){
+			
+			let eventLog = ["W = up. A = left. D = right. X = down. Q = up/left. E = up/right Z = down/left C = down/right"];
+			let turn = 0;
+
+			function initMap(){
 				let mapInfo = {height: 6, width: 4, tileList: [
 				{name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "newLine"},
 				{name: "wall"}, {name: "wall"}, {name: "end"}, {name: "wall"}, {name: "newLine"},
@@ -25,8 +40,8 @@
 				{name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "newLine"},
 				]};
 				return mapInfo;
-			}*/
-			function initMap(){
+			}
+			/*function initMap(){
 				let mapInfo = {height: 6, width: 10, tileList: [
 				{name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "newLine"},
 				{name: "end"}, {name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "newLine"},
@@ -36,7 +51,7 @@
 				{name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "newLine"},
 				]};
 				return mapInfo;
-			}
+			}*/
 
 			function render(tileList){
 				let map = "";
@@ -64,6 +79,29 @@
 			}
 
 			function run(key, tileList, mapWidth){
+				let playerMaxHealth = 2;
+				let loggedEvents = 0;
+
+				function logEvent(message){
+					eventLog.unshift(message+"\n");
+					$("#eventLog").html(eventLog);
+					if (eventLog.length > 40){
+						eventLog.pop();
+					}
+					loggedEvents ++;
+				}
+
+				function displayHealth(){
+					let healthDisplay = "";
+					for (let i = 0; i < tileList[findPlayer()].health; i++) {
+						healthDisplay += "█"
+					};
+					for (let i = 0; i < playerMaxHealth-tileList[findPlayer()].health; i++) {
+						healthDisplay += "_"
+					};
+					$("#health").html(healthDisplay);
+				}
+
 				function findPlayer(){
 					for (let i = 0; i < tileList.length; i++) {
 						if (tileList[i].name == "player"){
@@ -71,6 +109,7 @@
 						};
 					};
 				};
+
 				function moveTile(startPos, endPos){
 					tileList[endPos] = tileList[startPos];
 					tileList[startPos] = {name: "floor"}
@@ -82,6 +121,14 @@
 					};
 					if (tileList[target].name == "orc"){
 						tileList[target].name = "floor"
+						logEvent("You killed the orc!")
+					};
+					if (tileList[target].name == "wall"){
+						if (Math.random() > 0.8){
+							logEvent("You ram your head into the wall like a moron.")
+						}else{
+							logEvent("You ram your head into the wall.")
+						}
 					};
 					if (tileList[target].name == "end"){
 						tileList = [
@@ -89,8 +136,14 @@
 						{name: "wall"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "wall"},  {name: "floor"}, {name: "wall"}, {name: "newLine"},
 						{name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "wall"},  {name: "floor"}, {name: "wall"}, {name: "newLine"}
 						];
+						logEvent("YOU WIN!")
 					};
 				};
+
+				function playerDie(){
+					tileList[findPlayer()].name = "floor";
+					logEvent("YER DEAD!")
+				}
 
 				if (key == 65){
 					playerAct(findPlayer()-1);
@@ -118,16 +171,62 @@
 					playerAct(findPlayer()+mapWidth)
 				};
 
-				return tileList;
+				function simTiles(){
+					function orcAI(pos){
+						if (tileList[pos-1].name == "player"||
+							tileList[pos-(mapWidth+1)].name == "player"||
+							tileList[pos+1].name == "player"||
+							tileList[pos+(mapWidth+1)].name == "player"||
+							tileList[pos-(mapWidth+2)].name == "player"||
+							tileList[pos-(mapWidth)].name == "player"||
+							tileList[pos+(mapWidth+2)].name == "player"||
+							tileList[pos+(mapWidth)].name == "player"){
+							
+							tileList[findPlayer()].health -= 1;
+							logEvent("The orc hits you.");
+						}
+					}
+
+					for (let i = 0; i < tileList.length; i++) {
+						if (tileList[i].name == "orc"){
+							orcAI(i);
+						};
+
+					}
+				}
+
+				simTiles();
+
+				displayHealth();
+
+				if (tileList[findPlayer()].health <= 0){
+					playerDie()
+				}
+
+				if (turn == 0||loggedEvents > 0){
+					logEvent("")
+				}
+
+				turn ++;
+
+				return (tileList);
 			};
 
 			$( document ).ready(function() {
 			 	main();
-			 	//comment
 			});
+
+			/*
+			- death/death screen DONE
+			- displayed health DONE
+			- attack indication DONE
+			- instructions DONE
+			*/
 		</script>
 	</head>
 	<body>
+		<div id="health">ur health iz glitched</div>
 		<div id="map">ur code fayld</div>
+		<div id="eventLog"></div>
 	</body>
 </html>
