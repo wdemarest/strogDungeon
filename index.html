@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<style type="text/css">
+			#map {
+				font-size: 50px;
+				font-family:  "Lucida Console", Monaco, monospace;
+				white-space: pre-wrap;
+				line-height: 1;
+				letter-spacing: -0.1px;
+			}
+		</style>
+		<script
+  src="https://code.jquery.com/jquery-3.3.1.js"
+  integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+  crossorigin="anonymous"></script>
+		<script>
+			/*function initMap(){
+				let mapInfo = {height: 6, width: 4, tileList: [
+				{name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "newLine"},
+				{name: "wall"}, {name: "wall"}, {name: "end"}, {name: "wall"}, {name: "newLine"},
+				{name: "wall"}, {name: "floor"}, {name: "orc"}, {name: "wall"}, {name: "newLine"},
+				{name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "wall"}, {name: "newLine"},
+				{name: "wall"}, {name: "player", health: 2}, {name: "floor"}, {name: "wall"}, {name: "newLine"},
+				{name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "newLine"},
+				]};
+				return mapInfo;
+			}*/
+			function initMap(){
+				let mapInfo = {height: 6, width: 10, tileList: [
+				{name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "newLine"},
+				{name: "end"}, {name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "newLine"},
+				{name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "newLine"},
+				{name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "wall"}, {name: "orc"}, {name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "newLine"},
+				{name: "wall"}, {name: "player", health: 2}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "newLine"},
+				{name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "newLine"},
+				]};
+				return mapInfo;
+			}
+
+			function render(tileList){
+				let map = "";
+				let tileKey = { newLine: "\n", wall: "█", floor: ".", orc: "O", player: "±", end: "E"};
+				for (let i = 0; i < tileList.length; i++) {
+					let character = tileKey[tileList[i].name];
+					map += character;
+				};
+				return map;
+			}
+
+			function main(){
+				let dead = false;
+				let mapInfo = initMap();
+				
+				$( document ).keydown(function(e) {
+					mapInfo.tileList = run(e.keyCode, mapInfo.tileList, mapInfo.width)
+					let map = render(mapInfo.tileList)
+					$("#map").html(map);
+				});
+				
+				run(0, mapInfo.tileList, mapInfo.width)
+				let map = render(mapInfo.tileList)
+				$("#map").html(map);
+			}
+
+			function run(key, tileList, mapWidth){
+				function findPlayer(){
+					for (let i = 0; i < tileList.length; i++) {
+						if (tileList[i].name == "player"){
+							return i;
+						};
+					};
+				};
+				function moveTile(startPos, endPos){
+					tileList[endPos] = tileList[startPos];
+					tileList[startPos] = {name: "floor"}
+				};
+
+				function playerAct(target){
+					if (tileList[target].name == "floor"){
+						moveTile(findPlayer(), target)
+					};
+					if (tileList[target].name == "orc"){
+						tileList[target].name = "floor"
+					};
+					if (tileList[target].name == "end"){
+						tileList = [
+						{name: "wall"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "player"}, {name: "floor"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "newLine"},
+						{name: "wall"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "wall"},  {name: "floor"}, {name: "wall"}, {name: "newLine"},
+						{name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "wall"},  {name: "floor"}, {name: "wall"}, {name: "newLine"}
+						];
+					};
+				};
+
+				if (key == 65){
+					playerAct(findPlayer()-1);
+				};
+				if (key == 87){
+					playerAct(findPlayer()-(mapWidth+1))
+				};
+				if (key == 68){
+					playerAct(findPlayer()+1)
+				};
+				if (key == 88){
+					playerAct(findPlayer()+(mapWidth+1))
+				};
+				
+				if (key == 81){
+					playerAct(findPlayer()-(mapWidth+2));
+				};
+				if (key == 69){
+					playerAct(findPlayer()-mapWidth)
+				};
+				if (key == 67){
+					playerAct(findPlayer()+(mapWidth+2))
+				};
+				if (key == 90){
+					playerAct(findPlayer()+mapWidth)
+				};
+
+				return tileList;
+			};
+
+			$( document ).ready(function() {
+			 	main();
+			 	//comment
+			});
+		</script>
+	</head>
+	<body>
+		<div id="map">ur code fayld</div>
+	</body>
+</html>
