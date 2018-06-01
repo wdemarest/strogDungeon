@@ -56,47 +56,84 @@
 			}
 
 			class Map {
-				constructor(){
+				constructor(tileKey){
 					this.width = 0;
 					this.height = 0;
 					this.tileList = null;
+					this.tileKey = tileKey
+
 				}
 
+				inBounds(xPos, yPos){
+					console.assert(xPos !== undefined)
+					console.assert(yPos !== undefined)
+					return !(yPos > this.height || xPos > this.width || yPos < 0 || xPos < 0);
+				}
+
+				tileDefined(xPos, yPos){
+					let index = xPos+yPos*(this.width);
+					let tile = this.tileList[index];
+					console.assert(tile !== undefined);
+				}
+
+				scan(procedure){
+					for (let y = 0; y < this.height; y++) {
+						for (let x = 0; x < this.width; x++) {
+							procedure(x, y)
+						}
+					}
+				}
+
+
 				init(mapData){
+					console.assert(typeof mapData.width == "number" && mapData.width > 0)
+					console.assert(typeof mapData.height == "number" && mapData.height > 0)
+					//Map data is an array and tileList.length is what it should be.
+					console.assert(Array.isArray(mapData.tileList) && mapData.tileList.length == mapData.width * mapData.height)
 					this.width = mapData.width;
 					this.height = mapData.height;
 					this.tileList = mapData.tileList;
 				}
 
 				find(name){
-					let result = [];
-					for (let y = 0; y < this.height; y++) {
-						for (let x = 0; x < this.width+1; x++) {
-							let tileFound = this.getTile(x, y);
-							if (tileFound.name == name){
-								result.push({ tile:tileFound, x:x, y:y });
-							};
-						}
+					if(!name){
+						debugger;
 					}
+
+					let result = [];					
+					this.scan((x, y) => {
+						let tileFound = this.getTile(x, y);
+						if (tileFound.name == name){
+							result.push({ tile:tileFound, x:x, y:y });
+						}
+					});
 					return result;
 				}
 
 				setTile(xPos, yPos, setTo){
-					console.assert(xPos !== undefined)
-					console.assert(yPos !== undefined)
-					let index = xPos+yPos*(this.width+1);
+					if(!this.inBounds(xPos, yPos)){
+						return false;
+					}
+
+					this.tileDefined(xPos, yPos);
+					
+					let index = xPos+yPos*this.width;
 					let tile = this.tileList[index];
 					console.assert(tile !== undefined);
-					this.tileList[xPos+yPos*(this.width+1)] = setTo;
+					this.tileList[index] = setTo;
 				}
 
 				getTile(xPos, yPos){
-					if (this.tileList.length == 1){
+					if (this.tileList.length <= 1){
 						debugger;
 					}
-					console.assert(xPos !== undefined)
-					console.assert(yPos !== undefined)
-					let index = xPos+yPos*(this.width+1);
+					if(!this.inBounds(xPos, yPos)){
+						return false;
+					}
+
+					this.tileDefined(xPos, yPos);
+
+					let index = xPos+yPos*(this.width);
 					let tile = this.tileList[index];
 					console.assert(tile !== undefined);
 					return tile;
@@ -110,11 +147,10 @@
 
 				render(){
 					let map = "";
-					let tileKey = { newLine: "\n", wall: "█", floor: ".", orc: "O", player: "±", end: "E"};
-					for (let i = 0; i < this.tileList.length; i++) {
-						let character = tileKey[this.tileList[i].name];
-						map += character;
-					};
+					this.scan( (x, y) => {
+						let character = this.tileKey[this.getTile(x, y).name];
+						map += character+(x == this.width-1 ? "\n" : "" );
+					});
 					return map;
 				}
 				
@@ -152,14 +188,14 @@
 
 			function loadMap(){
 				let mapInfo = {height: 8, width: 10, tileList: [
-				{name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "newLine"},
-				{name: "wall"}, {name: "wall"}, {name: "end"}, {name: "floor"}, {name: "floor"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "newLine"},
-				{name: "wall"}, {name: "floor"}, {name: "orc", health: 2}, {name: "floor"}, {name: "floor"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "newLine"},
-				{name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "wall"}, {name: "newLine"},
-				{name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "orc", health: 2}, {name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "orc", health: 2}, {name: "wall"}, {name: "newLine"},
-				{name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "wall"}, {name: "newLine"},
-				{name: "wall"}, {name: "player", health: 10, maxHealth: 10}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "wall"}, {name: "newLine"},
-				{name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "newLine"},
+				{name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"},
+				{name: "wall"}, {name: "wall"}, {name: "end"}, {name: "floor"}, {name: "floor"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"},
+				{name: "wall"}, {name: "floor"}, {name: "orc", health: 2}, {name: "floor"}, {name: "floor"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"},
+				{name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "wall"},
+				{name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "orc", health: 2}, {name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "orc", health: 2}, {name: "wall"},
+				{name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "wall"},
+				{name: "wall"}, {name: "player", health: 10, maxHealth: 10}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "wall"},
+				{name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}
 				]};
 				return mapInfo;
 			}
@@ -176,9 +212,9 @@
 
 				function win (map){
 					map.init({width: 11, height: 3, tileList:[
-					{name: "wall"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "player"}, {name: "floor"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "newLine"},
-					{name: "wall"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "wall"},  {name: "floor"}, {name: "wall"}, {name: "newLine"},
-					{name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "wall"},  {name: "floor"}, {name: "wall"}, {name: "newLine"}
+					{name: "wall"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "player"}, {name: "floor"}, {name: "wall"}, {name: "wall"}, {name: "wall"},
+					{name: "wall"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "wall"},  {name: "floor"}, {name: "wall"},
+					{name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "wall"},  {name: "floor"}, {name: "wall"}
 					]});
 					logEvent("YOU WIN!")
 
@@ -338,7 +374,8 @@
 			};
 			
 			function main(){
-				let map = new Map();
+				let tileKey = {wall: "█", floor: ".", orc: "O", player: "±", end: "E"};
+				let map = new Map(tileKey);
 				let mapData = loadMap();
 				map.init(mapData);
 
