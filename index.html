@@ -187,165 +187,177 @@
 
 			}
 
-			//player AI
-			function recieveInput(keyCode, entity){
-				let action = {x: entity.x, y: entity.y};
-
-				if (keyCode == 65){
-					action.x -= 1;
-				};
-				if (keyCode == 87){
-					action.y -= 1;
-				};
-				if (keyCode == 68){
-					action.x += 1;
-				};
-				if (keyCode == 88){
-					action.y += 1;
-				};
-				
-				if (keyCode == 81){
-					action.x -= 1;
-					action.y -= 1;
-				};
-				if (keyCode == 69){
-					action.x += 1;
-					action.y -= 1;
-				};
-				if (keyCode == 67){
-					action.x += 1;
-					action.y += 1;
-				};
-				if (keyCode == 90){
-					action.x -= 1;
-					action.y += 1;
-				};
-
-				return action;
-			}
-
-			function playerDetermineCommand(map, action){
-				let targetName = map.getTile(action.x, action.y).name;
-				
-				if (targetName == "floor"){
-					action.command = "move";
-				};
-				if (targetName == "orc"){
-					action.command = "attack";
-				};
-				if (targetName == "wall"){
-					action.command = "bump";
-				};
-				if (targetName == "end"){
-					action.command = "win";
-				};
-				if (targetName == "player"){
-					action.command = "wait";
-				};
-				return action;
-			};
-
-			//orc AI
-			function orcAI(entity, map){
-				let action;
-				let player = map.find("player")[0];
-				let enemy = (player ? player : entity);
-				if (Math.abs(enemy.x-entity.x) <= 1 && Math.abs(enemy.y-entity.y) <= 1){
-					action = {command: "attack", x: enemy.x, y: enemy.y};
-				}else{
-					action = {command: "move", x: entity.x, y: entity.y};
-
-					if (enemy.x != entity.x) {
-						action.x += (enemy.x > entity.x ? 1 : -1)
-					};
-
-					if (enemy.y != entity.y) {
-						action.y += (enemy.y > entity.y ? 1 : -1)
-					};
+			class Entity {
+				constructor(entityInfo){
+					Object.assign(this, entityInfo);
 				}
-				return action;
-			}
 
-			function moveEntity(map, entity, x, y){
-				map.moveTile(entity.x, entity.y, x, y)
-				entity.x = x;
-				entity.y = y;
-			}
-
-			function checkDeath(entity, map){
-				if (entity.tile.health <= 0){
-					map.setTile(entity.x, entity.y, {name: "floor"})
-					if (entity.tile.name == "orc"){
-						logEvent("You killed the orc.")
-					}
-					if (entity.tile.name == "player"){
-						logEvent("YER DEAD!")
-					}
-				}
-			}
-
-			function ai(map, entity, keyCode){
-				let action;
-				if (entity.tile.name == "player"){
-					action = recieveInput(keyCode, entity);
-					action = playerDetermineCommand(map, action);
-				}else{
-					action = orcAI(entity, map);
-				}
-				return action;
-			}
-
-			function act(map, entity, action){
-				if(!action){
-					debugger;
-				}
-				if(action.command == "move"){
-					if (map.getTile(action.x, action.y).name == "floor"){
-						moveEntity(map, entity, action.x, action.y)
+				//orc AI
+				 NPCAI(map){
+					let action;
+					let player = map.find("player")[0];
+					let enemy = (player ? player : this);
+					if (Math.abs(enemy.x-this.x) <= 1 && Math.abs(enemy.y-this.y) <= 1){
+						action = {command: "attack", x: enemy.x, y: enemy.y};
 					}else{
-						if (entity.tile.name == "player") {
-							logEvent("You ram your head into the wall like a moron.");
+						action = {command: "move", x: this.x, y: this.y};
+
+						if (enemy.x != this.x) {
+							action.x += (enemy.x > this.x ? 1 : -1)
+						};
+
+						if (enemy.y != this.y) {
+							action.y += (enemy.y > this.y ? 1 : -1)
+						};
+					}
+					return action;
+				}
+
+				 move(map, x, y){
+					map.moveTile(this.x, this.y, x, y)
+					this.x = x;
+					this.y = y;
+				}
+
+				 checkDeath(map){
+					if (this.tile.health <= 0){
+						map.setTile(this.x, this.y, {name: "floor"})
+						if (this.tile.name == "orc"){
+							logEvent("You killed the orc.")
+						}
+						if (this.tile.name == "player"){
+							logEvent("YER DEAD!")
 						}
 					}
 				}
-				if(action.command == "attack"){
-					map.getTile(action.x, action.y).health -= 1;
-					if(entity.tile.name == "player"){
-						logEvent("You hit the orc.");
+
+				 AI(map, keyCode){
+					let action;
+					if (this.tile.name == "player"){
+						action = this.recieveInput( keyCode);
+						action = this.playerDetermineCommand(map, action);
+					}else{
+						action = this.NPCAI(map);
 					}
-					if(entity.tile.name == "orc"){
-						logEvent("The orc hits you.");
+					return action;
+				}
+
+				 act(map, action){
+					if(!action){
+						debugger;
+					}
+					if(action.command == "move"){
+						if (map.getTile(action.x, action.y).name == "floor"){
+							this.move(map, action.x, action.y)
+						}else{
+							if (this.tile.name == "player") {
+								logEvent("You ram your head into the wall like a moron.");
+							}
+						}
+					}
+					if(action.command == "attack"){
+						map.getTile(action.x, action.y).health -= 1;
+						if(this.tile.name == "player"){
+							logEvent("You hit the orc.");
+						}
+						if(this.tile.name == "orc"){
+							logEvent("The orc hits you.");
+						}
+					}
+					if(action.command == "win"){
+						map.mapToSet = "win";
+						logEvent("YOU WIN!")
+					}
+					if(action.command == "wait"){
+						if (this.tile.name == "player") {
+							logEvent("You wait.");
+						}
 					}
 				}
-				if(action.command == "win"){
-					map.mapToSet = "win";
-					logEvent("YOU WIN!")
+
+				//player AI
+				 recieveInput(keyCode){
+					let action = {x: this.x, y: this.y};
+
+					if (keyCode == 65){
+						action.x -= 1;
+					};
+					if (keyCode == 87){
+						action.y -= 1;
+					};
+					if (keyCode == 68){
+						action.x += 1;
+					};
+					if (keyCode == 88){
+						action.y += 1;
+					};
+					
+					if (keyCode == 81){
+						action.x -= 1;
+						action.y -= 1;
+					};
+					if (keyCode == 69){
+						action.x += 1;
+						action.y -= 1;
+					};
+					if (keyCode == 67){
+						action.x += 1;
+						action.y += 1;
+					};
+					if (keyCode == 90){
+						action.x -= 1;
+						action.y += 1;
+					};
+
+					return action;
 				}
-				if(action.command == "wait"){
-					if (entity.tile.name == "player") {
-						logEvent("You wait.");
-					}
-				}
+
+				 playerDetermineCommand(map, action){
+					let targetName = map.getTile(action.x, action.y).name;
+					
+					if (targetName == "floor"){
+						action.command = "move";
+					};
+					if (targetName == "orc"){
+						action.command = "attack";
+					};
+					if (targetName == "wall"){
+						action.command = "bump";
+					};
+					if (targetName == "end"){
+						action.command = "win";
+					};
+					if (targetName == "player"){
+						action.command = "wait";
+					};
+					return action;
+				};
+
+
 			}
 
-			function run(keyCode, map){
+			function run(map, keyCode){
 
 				function makeEntityList(map){
 					let entityList = [];
-					entityList = entityList.concat(map.find("player"));
-					entityList = entityList.concat(map.find("orc"));
+					let entities = [];
+					entities = entities.concat(map.find("player"));
+					entities = entities.concat(map.find("orc"));
+					for(let i = 0 ; i < entities.length; i++){
+						entityList = entityList.concat(new Entity(entities[i]));
+					}
 					return entityList;
 				}
 
 				function simTiles(){
 					let entityList = makeEntityList(map);
 					for (let entity of entityList){
-						let action = ai(map, entity, keyCode);
-						act(map, entity, action);
+						let action = entity.AI(map, keyCode);
+						entity.act(map, action);
 						if(map.mapToSet){return;}
 					}
 					for (let entity of entityList){
-						checkDeath(entity, map);
+						entity.checkDeath(map);
 					}
 				}
 
@@ -363,7 +375,7 @@
 				let screen = new Screen();
 
 				function allTheStuff(e) {
-					run(e.keyCode, map);
+					run(map, e.keyCode);
 					if(map.mapToSet){
 						map = new Map(tileKey).initFromMapData(loadMapData(map.mapToSet));
 					}
@@ -390,10 +402,6 @@
 			- different enemies
 			- death screen
 			- eventlog ends when dead
-
-			GIANT BUGS OH GOD
-			- can move while dead
-			- orcs teleport?
 
 			Other
 			- modularize displayHealth
