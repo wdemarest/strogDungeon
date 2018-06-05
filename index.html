@@ -27,18 +27,6 @@
   crossorigin="anonymous"></script>
 		<script>
 
-			/*function initMap(){
-				let mapInfo = {height: 6, width: 10, tileList: [
-				{name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "newLine"},
-				{name: "end"}, {name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "newLine"},
-				{name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "newLine"},
-				{name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "wall"}, {name: "orc"}, {name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "newLine"},
-				{name: "wall"}, {name: "player", health: 2}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "newLine"},
-				{name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "newLine"},
-				]};
-				return mapInfo;
-			}*/
-
 			let loggedEvents = 0;
 			let eventLog = [];
 
@@ -85,7 +73,7 @@
 				}
 
 
-				init(mapData){
+				initFromMapData(mapData){
 					console.assert(typeof mapData.width == "number" && mapData.width > 0)
 					console.assert(typeof mapData.height == "number" && mapData.height > 0)
 					//Map data is an array and tileList.length is what it should be.
@@ -93,6 +81,7 @@
 					this.width = mapData.width;
 					this.height = mapData.height;
 					this.tileList = mapData.tileList;
+					return this;
 				}
 
 				find(name){
@@ -174,201 +163,193 @@
 				}
 			}
 
-			/*function loadMap(){
-				let mapInfo = {height: 6, width: 4, tileList: [
-				{name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "newLine"},
-				{name: "wall"}, {name: "orc"}, {name: "end"}, {name: "wall"}, {name: "newLine"},
-				{name: "wall"}, {name: "floor"}, {name: "orc"}, {name: "wall"}, {name: "newLine"},
-				{name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "wall"}, {name: "newLine"},
-				{name: "wall"}, {name: "player"}, {name: "floor"}, {name: "wall"}, {name: "newLine"},
-				{name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "newLine"},
-				]};
-				return mapInfo;
-			}*/
+			function loadMapData(mapId){
+				let mapList = {}
 
-			function loadMap(){
-				let mapInfo = {height: 8, width: 10, tileList: [
-				{name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"},
-				{name: "wall"}, {name: "wall"}, {name: "end"}, {name: "floor"}, {name: "floor"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"},
-				{name: "wall"}, {name: "floor"}, {name: "orc", health: 2}, {name: "floor"}, {name: "floor"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"},
-				{name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "wall"},
-				{name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "orc", health: 2}, {name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "orc", health: 2}, {name: "wall"},
-				{name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "wall"},
-				{name: "wall"}, {name: "player", health: 10, maxHealth: 10}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "wall"},
-				{name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}
+				mapList.main = {height: 8, width: 10, tileList: [
+					{name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"},
+					{name: "wall"}, {name: "wall"}, {name: "end"}, {name: "floor"}, {name: "floor"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"},
+					{name: "wall"}, {name: "floor"}, {name: "orc", health: 2}, {name: "floor"}, {name: "floor"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"},
+					{name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "wall"},
+					{name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "orc", health: 2}, {name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "orc", health: 2}, {name: "wall"},
+					{name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "wall"},
+					{name: "wall"}, {name: "player", health: 10, maxHealth: 10}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "wall"},
+					{name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}
 				]};
-				return mapInfo;
+
+				mapList.win = {width: 11, height: 3, tileList:[
+					{name: "wall"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "player"}, {name: "floor"}, {name: "wall"}, {name: "wall"}, {name: "wall"},
+					{name: "wall"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "wall"},  {name: "floor"}, {name: "wall"},
+					{name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "wall"},  {name: "floor"}, {name: "wall"}
+				]};
+
+				return mapList[mapId];
+
+			}
+
+			//player AI
+			function recieveInput(keyCode, entity){
+				let action = {x: entity.x, y: entity.y};
+
+				if (keyCode == 65){
+					action.x -= 1;
+				};
+				if (keyCode == 87){
+					action.y -= 1;
+				};
+				if (keyCode == 68){
+					action.x += 1;
+				};
+				if (keyCode == 88){
+					action.y += 1;
+				};
+				
+				if (keyCode == 81){
+					action.x -= 1;
+					action.y -= 1;
+				};
+				if (keyCode == 69){
+					action.x += 1;
+					action.y -= 1;
+				};
+				if (keyCode == 67){
+					action.x += 1;
+					action.y += 1;
+				};
+				if (keyCode == 90){
+					action.x -= 1;
+					action.y += 1;
+				};
+
+				return action;
+			}
+
+			function playerDetermineCommand(map, action){
+				let targetName = map.getTile(action.x, action.y).name;
+				
+				if (targetName == "floor"){
+					action.command = "move";
+				};
+				if (targetName == "orc"){
+					action.command = "attack";
+				};
+				if (targetName == "wall"){
+					action.command = "bump";
+				};
+				if (targetName == "end"){
+					action.command = "win";
+				};
+				if (targetName == "player"){
+					action.command = "wait";
+				};
+				return action;
+			};
+
+			//orc AI
+			function orcAI(entity, map){
+				let action;
+				let player = map.find("player")[0];
+				let enemy = (player ? player : entity);
+				if (Math.abs(enemy.x-entity.x) <= 1 && Math.abs(enemy.y-entity.y) <= 1){
+					action = {command: "attack", x: enemy.x, y: enemy.y};
+				}else{
+					action = {command: "move", x: entity.x, y: entity.y};
+
+					if (enemy.x != entity.x) {
+						action.x += (enemy.x > entity.x ? 1 : -1)
+					};
+
+					if (enemy.y != entity.y) {
+						action.y += (enemy.y > entity.y ? 1 : -1)
+					};
+				}
+				return action;
+			}
+
+			function moveEntity(map, entity, x, y){
+				map.moveTile(entity.x, entity.y, x, y)
+				entity.x = x;
+				entity.y = y;
+			}
+
+			function checkDeath(entity, map){
+				if (entity.tile.health <= 0){
+					map.setTile(entity.x, entity.y, {name: "floor"})
+					if (entity.tile.name == "orc"){
+						logEvent("You killed the orc.")
+					}
+					if (entity.tile.name == "player"){
+						logEvent("YER DEAD!")
+					}
+				}
+			}
+
+			function ai(map, entity, keyCode){
+				let action;
+				if (entity.tile.name == "player"){
+					action = recieveInput(keyCode, entity);
+					action = playerDetermineCommand(map, action);
+				}else{
+					action = orcAI(entity, map);
+				}
+				return action;
+			}
+
+			function act(map, entity, action){
+				if(!action){
+					debugger;
+				}
+				if(action.command == "move"){
+					if (map.getTile(action.x, action.y).name == "floor"){
+						moveEntity(map, entity, action.x, action.y)
+					}else{
+						if (entity.tile.name == "player") {
+							logEvent("You ram your head into the wall like a moron.");
+						}
+					}
+				}
+				if(action.command == "attack"){
+					map.getTile(action.x, action.y).health -= 1;
+					if(entity.tile.name == "player"){
+						logEvent("You hit the orc.");
+					}
+					if(entity.tile.name == "orc"){
+						logEvent("The orc hits you.");
+					}
+				}
+				if(action.command == "win"){
+					map.mapToSet = "win";
+					logEvent("YOU WIN!")
+				}
+				if(action.command == "wait"){
+					if (entity.tile.name == "player") {
+						logEvent("You wait.");
+					}
+				}
 			}
 
 			function run(keyCode, map){
-				loggedEvents = 0;
 
-				function makeEntityList(){
+				function makeEntityList(map){
 					let entityList = [];
 					entityList = entityList.concat(map.find("player"));
 					entityList = entityList.concat(map.find("orc"));
 					return entityList;
 				}
 
-				function win (map){
-					map.init({width: 11, height: 3, tileList:[
-					{name: "wall"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "player"}, {name: "floor"}, {name: "wall"}, {name: "wall"}, {name: "wall"},
-					{name: "wall"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "wall"},  {name: "floor"}, {name: "wall"},
-					{name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "wall"},  {name: "floor"}, {name: "wall"}
-					]});
-					logEvent("YOU WIN!")
-
-				}
-
-				//player AI
-				function recieveInput(keyCode, entity){
-					let action = {x: entity.x, y: entity.y};
-
-					if (keyCode == 65){
-						action.x -= 1;
-					};
-					if (keyCode == 87){
-						action.y -= 1;
-					};
-					if (keyCode == 68){
-						action.x += 1;
-					};
-					if (keyCode == 88){
-						action.y += 1;
-					};
-					
-					if (keyCode == 81){
-						action.x -= 1;
-						action.y -= 1;
-					};
-					if (keyCode == 69){
-						action.x += 1;
-						action.y -= 1;
-					};
-					if (keyCode == 67){
-						action.x += 1;
-						action.y += 1;
-					};
-					if (keyCode == 90){
-						action.x -= 1;
-						action.y += 1;
-					};
-
-					return action;
-				}
-
-				function playerDetermineCommand(map, action){
-					let targetName = map.getTile(action.x, action.y).name;
-					
-					if (targetName == "floor"){
-						action.command = "move";
-					};
-					if (targetName == "orc"){
-						action.command = "attack";
-					};
-					if (targetName == "wall"){
-						action.command = "bump";
-					};
-					if (targetName == "end"){
-						action.command = "win";
-					};
-					if (targetName == "player"){
-						action.command = "wait";
-					};
-					return action;
-				};
-
-				//orc AI
-				function orcAI(entity){
-					let action;
-					let player = map.find("player")[0];
-					let enemy = (player ? player : entity);
-					if (Math.abs(enemy.x-entity.x) <= 1 && Math.abs(enemy.y-entity.y) <= 1){
-						action = {command: "attack", x: enemy.x, y: enemy.y};
-					}else{
-						action = {command: "move", x: entity.x, y: entity.y};
-
-						if (enemy.x != entity.x) {
-							action.x += (enemy.x > entity.x ? 1 : -1)
-						};
-
-						if (enemy.y != entity.y) {
-							action.y += (enemy.y > entity.y ? 1 : -1)
-						};
-					}
-					return action;
-				}
-
-				function moveEntity(map, entity, x, y){
-					map.moveTile(entity.x, entity.y, x, y)
-					entity.x = x;
-					entity.y = y;
-				}
-
-				function checkDeath(entity){
-					if (entity.tile.health <= 0){
-						map.setTile(entity.x, entity.y, {name: "floor"})
-						if (entity.tile.name == "orc"){
-							logEvent("You killed the orc.")
-						}
-						if (entity.tile.name == "player"){
-							logEvent("YER DEAD!")
-						}
-					}
-				}
-
-				function ai(map, entity){
-					let action;
-					if (entity.tile.name == "player"){
-						action = recieveInput(keyCode, entity);
-						action = playerDetermineCommand(map, action);
-					}else{
-						action = orcAI(entity);
-					}
-					return action;
-				}
-				function act(map, entity, action){
-					if(!action){
-						debugger;
-					}
-					if(action.command == "move"){
-						if (map.getTile(action.x, action.y).name == "floor"){
-							moveEntity(map, entity, action.x, action.y)
-						}else{
-							if (entity.tile.name == "player") {
-								logEvent("You ram your head into the wall like a moron.");
-							}
-						}
-					}
-					if(action.command == "attack"){
-						map.getTile(action.x, action.y).health -= 1;
-						if(entity.tile.name == "player"){
-							logEvent("You hit the orc.");
-						}
-						if(entity.tile.name == "orc"){
-							logEvent("The orc hits you.");
-						}
-					}
-					if(action.command == "win"){
-						win(map);
-					}
-					if(action.command == "wait"){
-						if (entity.tile.name == "player") {
-							logEvent("You wait.");
-						}
-					}
-				}
-
 				function simTiles(){
-					let entityList = makeEntityList();
+					let entityList = makeEntityList(map);
 					for (let entity of entityList){
-						let action = ai(map, entity);
+						let action = ai(map, entity, keyCode);
 						act(map, entity, action);
+						if(map.mapToSet){return;}
 					}
 					for (let entity of entityList){
-						checkDeath(entity);
+						checkDeath(entity, map);
 					}
 				}
+
+				loggedEvents = 0;
 
 				simTiles();
 			};
@@ -376,13 +357,17 @@
 			function main(){
 				let tileKey = {wall: "█", floor: ".", orc: "O", player: "±", end: "E"};
 				let map = new Map(tileKey);
-				let mapData = loadMap();
-				map.init(mapData);
+				let mapData = loadMapData("main");
+				map.initFromMapData(mapData);
 
 				let screen = new Screen();
 
 				function allTheStuff(e) {
 					run(e.keyCode, map);
+					if(map.mapToSet){
+						map = new Map(tileKey).initFromMapData(loadMapData(map.mapToSet));
+					}
+
 					screen.drawMap(map)
 					screen.displayHealth(map.find("player")[0]);
 				};
