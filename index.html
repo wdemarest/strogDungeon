@@ -27,22 +27,32 @@
   crossorigin="anonymous"></script>
 		<script>
 
-			let loggedEvents = 0;
-			let eventLog = [];
-
-			function logEvent(message){
-				if (loggedEvents <= 0){
-					eventLog.unshift("\n");
-					loggedEvents ++;
+			let Log = (new class{
+				constructor(divId, eventLogLimit){
+					this.divId = divId;
+					this.eventLogLimit = eventLogLimit;
+					this.eventLog = [];
+					this.eventsLogged = false;
 				}
-				eventLog.unshift(message+"\n");
-				$("#eventLog").html(eventLog);
-				while (eventLog.length > 40){
-					eventLog.pop();
-				}
-				loggedEvents ++;
-			}
 
+				logEvent(message){
+					if (!this.eventsLogged) {
+						this.eventLog.unshift("\n");
+						this.eventsLogged = true;
+					};
+					this.eventLog.unshift(message+"\n");
+					$(this.divId).html(this.eventLog);
+					while (this.eventLog.length > this.eventLogLimit){
+						this.eventLog.pop();
+					}
+				}
+				logNewTurn(){
+					this.eventsLogged = false;
+				}
+			}("#eventLog", 40))
+
+
+			
 			class Map {
 				constructor(tileKey){
 					this.width = 0;
@@ -164,6 +174,10 @@
 			}
 
 			function loadMapData(mapId){
+				/*tileTemplateList(){
+
+				}*/
+
 				let mapList = {}
 
 				mapList.main = {height: 8, width: 10, tileList: [
@@ -223,10 +237,10 @@
 					if (this.tile.health <= 0){
 						map.setTile(this.x, this.y, {name: "floor"})
 						if (this.tile.name == "orc"){
-							logEvent("You killed the orc.")
+							Log.logEvent("You killed the orc.")
 						}
 						if (this.tile.name == "player"){
-							logEvent("YER DEAD!")
+							Log.logEvent("YER DEAD!")
 						}
 					}
 				}
@@ -249,28 +263,29 @@
 					if(action.command == "move"){
 						if (map.getTile(action.x, action.y).name == "floor"){
 							this.move(map, action.x, action.y)
-						}else{
+						}
+						if (map.getTile(action.x, action.y).name == "wall"){
 							if (this.tile.name == "player") {
-								logEvent("You ram your head into the wall like a moron.");
+								Log.logEvent("You ram your head into the wall like a moron.");
 							}
+						}
+						if(map.getTile(action.x, action.y).name == "end"){
+							map.mapToSet = "win";
+							Log.logEvent("YOU WIN!")
 						}
 					}
 					if(action.command == "attack"){
 						map.getTile(action.x, action.y).health -= 1;
 						if(this.tile.name == "player"){
-							logEvent("You hit the orc.");
+							Log.logEvent("You hit the orc.");
 						}
 						if(this.tile.name == "orc"){
-							logEvent("The orc hits you.");
+							Log.logEvent("The orc hits you.");
 						}
-					}
-					if(action.command == "win"){
-						map.mapToSet = "win";
-						logEvent("YOU WIN!")
 					}
 					if(action.command == "wait"){
 						if (this.tile.name == "player") {
-							logEvent("You wait.");
+							Log.logEvent("You wait.");
 						}
 					}
 				}
@@ -315,17 +330,11 @@
 				 playerDetermineCommand(map, action){
 					let targetName = map.getTile(action.x, action.y).name;
 					
-					if (targetName == "floor"){
+					if (targetName == "floor"||targetName == "wall"||targetName == "end"){
 						action.command = "move";
 					};
 					if (targetName == "orc"){
 						action.command = "attack";
-					};
-					if (targetName == "wall"){
-						action.command = "bump";
-					};
-					if (targetName == "end"){
-						action.command = "win";
 					};
 					if (targetName == "player"){
 						action.command = "wait";
@@ -361,7 +370,7 @@
 					}
 				}
 
-				loggedEvents = 0;
+				Log.logNewTurn()
 
 				simTiles();
 			};
@@ -389,7 +398,7 @@
 				screen.drawMap(map)
 				screen.displayHealth(map.find("player")[0]);
 
-				logEvent("W = up. A = left. D = right. X = down. Q = up/left. E = up/right Z = down/left C = down/right");
+				Log.logEvent("W = up. A = left. D = right. X = down. Q = up/left. E = up/right Z = down/left C = down/right");
 			}
 
 			$( document ).ready(function() {
