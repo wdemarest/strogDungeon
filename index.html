@@ -27,6 +27,14 @@
   crossorigin="anonymous"></script>
 		<script>
 
+			TileTemplateList = {
+				'.': {name: 'floor'},
+				'█': {name: 'wall'},
+				E: {name: 'end'},
+				'±': {name: 'player', isEntity: true, health: 10, maxHealth: 10},
+				O: {name: 'orc', isEntity: true, health: 2, maxHealth: 2},
+			}
+
 			let Log = (new class{
 				constructor(divId, eventLogLimit){
 					this.divId = divId;
@@ -58,8 +66,7 @@
 					this.width = 0;
 					this.height = 0;
 					this.tileList = null;
-					this.tileKey = tileKey
-
+					this.tileKey = tileKey;
 				}
 
 				inBounds(xPos, yPos){
@@ -140,16 +147,12 @@
 
 				moveTile(startXPos, startYPos, endXPos, endYPos){
 					let tileMoved = this.getTile(startXPos, startYPos);
-					this.setTile(startXPos, startYPos, {name: "floor"})
+					this.setTile(startXPos, startYPos, '.')
 					this.setTile(endXPos, endYPos, tileMoved)
 				}
 
 				render(){
-					let map = "";
-					this.scan( (x, y) => {
-						let character = this.tileKey[this.getTile(x, y).name];
-						map += character+(x == this.width-1 ? "\n" : "" );
-					});
+					let map = this.tileList.concat();
 					return map;
 				}
 				
@@ -174,32 +177,57 @@
 			}
 
 			function loadMapData(mapId){
-				/*tileTemplateList(){
+				let mapDataList = {}
 
-				}*/
+				mapDataList.main = {height: 8, width: 10, tileString:
+				`
+				██████████
+				██E..█████
+				█.O..█████
+				█....█...█
+				█...O█..O█
+				█....█...█
+				█±.......█
+				██████████
+				`
+				};
 
-				let mapList = {}
+				mapDataList.win = {width: 11, height: 3, tileString:
+				`
+				█.█.█.±.███
+				█.█.█.█.█.█
+				.█.█..█.█.█
+				`
+				};
 
-				mapList.main = {height: 8, width: 10, tileList: [
-					{name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"},
-					{name: "wall"}, {name: "wall"}, {name: "end"}, {name: "floor"}, {name: "floor"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"},
-					{name: "wall"}, {name: "floor"}, {name: "orc", health: 2}, {name: "floor"}, {name: "floor"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"},
-					{name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "wall"},
-					{name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "orc", health: 2}, {name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "orc", health: 2}, {name: "wall"},
-					{name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "wall"},
-					{name: "wall"}, {name: "player", health: 10, maxHealth: 10}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "floor"}, {name: "wall"},
-					{name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}, {name: "wall"}
-				]};
+				console.assert(mapDataList[mapId]);
 
-				mapList.win = {width: 11, height: 3, tileList:[
-					{name: "wall"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "player"}, {name: "floor"}, {name: "wall"}, {name: "wall"}, {name: "wall"},
-					{name: "wall"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "wall"},  {name: "floor"}, {name: "wall"},
-					{name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "floor"}, {name: "wall"}, {name: "floor"}, {name: "wall"},  {name: "floor"}, {name: "wall"}
-				]};
+				mapDataList[mapId].tileList = tileStringToList(mapDataList[mapId].tileString);
 
-				return mapList[mapId];
-
+				return mapDataList[mapId]
 			}
+
+
+			function tileStringToList(tileString){
+				console.assert(tileString);
+				console.assert(typeof tileString == "string");
+				
+				let tileList = [];
+
+				for(let i = 0; i < tileString.length; i ++){
+					let c = tileString.charAt(i);
+					if (c == '\t' || c == '\n') {
+						continue;
+					}
+
+					console.assert(TileTemplateList[c]);
+
+					tileList.push(TileTemplateList[c]);
+				}
+
+				return tileList;
+			}
+
 
 			class Entity {
 				constructor(entityInfo){
@@ -235,7 +263,7 @@
 
 				 checkDeath(map){
 					if (this.tile.health <= 0){
-						map.setTile(this.x, this.y, {name: "floor"})
+						map.setTile(this.x, this.y, '.')
 						if (this.tile.name == "orc"){
 							Log.logEvent("You killed the orc.")
 						}
@@ -376,7 +404,7 @@
 			};
 			
 			function main(){
-				let tileKey = {wall: "█", floor: ".", orc: "O", player: "±", end: "E"};
+				let tileKey = {'█': "wall", ".":"floor", O: "orc", '±': "player", E: "end"};
 				let map = new Map(tileKey);
 				let mapData = loadMapData("main");
 				map.initFromMapData(mapData);
